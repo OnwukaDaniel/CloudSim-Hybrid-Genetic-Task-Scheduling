@@ -1,4 +1,4 @@
-# Hybrid Genetic-Algorithms-for-Task-Scheduling-in-Cloud
+# Hybrid Genetic-Algorithm-for-Task-Scheduling-in-Cloud
 
 # Implementation of Genetic Optimization, for Task Scheduling in cloud computing environment
 
