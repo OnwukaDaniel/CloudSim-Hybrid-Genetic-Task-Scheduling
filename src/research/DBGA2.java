@@ -6,7 +6,7 @@
  * Copyright (c) 2009-2012, The University of Melbourne, Australia
  */
 
-package org.cloudbus.cloudsim.examples;
+package research;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,20 +26,16 @@ import org.cloudbus.cloudsim.core.SimEvent;
 import org.cloudbus.cloudsim.lists.CloudletList;
 import org.cloudbus.cloudsim.lists.VmList;
 
-import research.Chromosomes;
-import research.CustomPair;
-import research.Gene;
-
-
 /**
- * DatacentreBroker represents a broker acting on behalf of a user. It hides VM management, as vm
- * creation, sumbission of cloudlets to this VMs and destruction of VMs.
+ * DatacentreBroker represents a broker acting on behalf of a user. It hides VM
+ * management, as vm creation, sumbission of cloudlets to this VMs and
+ * destruction of VMs.
  * 
  * @author Rodrigo N. Calheiros
  * @author Anton Beloglazov
  * @since CloudSim Toolkit 1.0
  */
-public class DatacenterBrokerMod extends SimEntity {
+public class DBGA2 extends SimEntity {
 
 	/** The vm list. */
 	protected List<? extends Vm> vmList;
@@ -83,13 +79,13 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Created a new DatacenterBroker object.
 	 * 
-	 * @param name name to be associated with this entity (as required by Sim_entity class from
-	 *            simjava package)
+	 * @param name name to be associated with this entity (as required by Sim_entity
+	 *             class from simjava package)
 	 * @throws Exception the exception
 	 * @pre name != null
 	 * @post $none
 	 */
-	public DatacenterBrokerMod(String name) throws Exception {
+	public DBGA2(String name) throws Exception {
 		super(name);
 
 		setVmList(new ArrayList<Vm>());
@@ -110,8 +106,8 @@ public class DatacenterBrokerMod extends SimEntity {
 	}
 
 	/**
-	 * This method is used to send to the broker the list with virtual machines that must be
-	 * created.
+	 * This method is used to send to the broker the list with virtual machines that
+	 * must be created.
 	 * 
 	 * @param list the list
 	 * @pre list !=null
@@ -136,7 +132,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	 * Specifies that a given cloudlet must run in a specific virtual machine.
 	 * 
 	 * @param cloudletId ID of the cloudlet being bount to a vm
-	 * @param vmId the vm id
+	 * @param vmId       the vm id
 	 * @pre cloudletId > 0
 	 * @pre id > 0
 	 * @post $none
@@ -156,29 +152,29 @@ public class DatacenterBrokerMod extends SimEntity {
 	public void processEvent(SimEvent ev) {
 		switch (ev.getTag()) {
 		// Resource characteristics request
-			case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
-				processResourceCharacteristicsRequest(ev);
-				break;
-			// Resource characteristics answer
-			case CloudSimTags.RESOURCE_CHARACTERISTICS:
-				processResourceCharacteristics(ev);
-				break;
-			// VM Creation answer
-			case CloudSimTags.VM_CREATE_ACK:
-				processVmCreate(ev);
-				break;
-			// A finished cloudlet returned
-			case CloudSimTags.CLOUDLET_RETURN:
-				processCloudletReturn(ev);
-				break;
-			// if the simulation finishes
-			case CloudSimTags.END_OF_SIMULATION:
-				shutdownEntity();
-				break;
-			// other unknown tags are processed by this method
-			default:
-				processOtherEvent(ev);
-				break;
+		case CloudSimTags.RESOURCE_CHARACTERISTICS_REQUEST:
+			processResourceCharacteristicsRequest(ev);
+			break;
+		// Resource characteristics answer
+		case CloudSimTags.RESOURCE_CHARACTERISTICS:
+			processResourceCharacteristics(ev);
+			break;
+		// VM Creation answer
+		case CloudSimTags.VM_CREATE_ACK:
+			processVmCreate(ev);
+			break;
+		// A finished cloudlet returned
+		case CloudSimTags.CLOUDLET_RETURN:
+			processCloudletReturn(ev);
+			break;
+		// if the simulation finishes
+		case CloudSimTags.END_OF_SIMULATION:
+			shutdownEntity();
+			break;
+		// other unknown tags are processed by this method
+		default:
+			processOtherEvent(ev);
+			break;
 		}
 	}
 
@@ -234,12 +230,11 @@ public class DatacenterBrokerMod extends SimEntity {
 		if (result == CloudSimTags.TRUE) {
 			getVmsToDatacentersMap().put(vmId, datacenterId);
 			getVmsCreatedList().add(VmList.getById(getVmList(), vmId));
-			Log.printLine(CloudSim.clock() + ": " + getName() + ": VM #" + vmId
-					+ " has been created in Datacenter #" + datacenterId + ", Host #"
-					+ VmList.getById(getVmsCreatedList(), vmId).getHost().getId());
+			Log.printLine(CloudSim.clock() + ": " + getName() + ": VM #" + vmId + " has been created in Datacenter #"
+					+ datacenterId + ", Host #" + VmList.getById(getVmsCreatedList(), vmId).getHost().getId());
 		} else {
-			Log.printLine(CloudSim.clock() + ": " + getName() + ": Creation of VM #" + vmId
-					+ " failed in Datacenter #" + datacenterId);
+			Log.printLine(CloudSim.clock() + ": " + getName() + ": Creation of VM #" + vmId + " failed in Datacenter #"
+					+ datacenterId);
 		}
 
 		incrementVmsAcks();
@@ -280,8 +275,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	protected void processCloudletReturn(SimEvent ev) {
 		Cloudlet cloudlet = (Cloudlet) ev.getData();
 		getCloudletReceivedList().add(cloudlet);
-		Log.printLine(CloudSim.clock() + ": " + getName() + ": Cloudlet " + cloudlet.getCloudletId()
-				+ " received");
+		Log.printLine(CloudSim.clock() + ": " + getName() + ": Cloudlet " + cloudlet.getCloudletId() + " received");
 		cloudletsSubmitted--;
 		if (getCloudletList().size() == 0 && cloudletsSubmitted == 0) { // all cloudlets executed
 			Log.printLine(CloudSim.clock() + ": " + getName() + ": All Cloudlets executed. Finishing...");
@@ -299,8 +293,8 @@ public class DatacenterBrokerMod extends SimEntity {
 	}
 
 	/**
-	 * Overrides this method when making a new and different type of Broker. This method is called
-	 * by {@link #body()} for incoming unknown tags.
+	 * Overrides this method when making a new and different type of Broker. This
+	 * method is called by {@link #body()} for incoming unknown tags.
 	 * 
 	 * @param ev a SimEvent object
 	 * @pre ev != null
@@ -312,8 +306,7 @@ public class DatacenterBrokerMod extends SimEntity {
 			return;
 		}
 
-		Log.printLine(getName() + ".processOtherEvent(): "
-				+ "Error - event unknown by this DatacenterBroker.");
+		Log.printLine(getName() + ".processOtherEvent(): " + "Error - event unknown by this DatacenterBroker.");
 	}
 
 	/**
@@ -329,8 +322,8 @@ public class DatacenterBrokerMod extends SimEntity {
 		String datacenterName = CloudSim.getEntityName(datacenterId);
 		for (Vm vm : getVmList()) {
 			if (!getVmsToDatacentersMap().containsKey(vm.getId())) {
-				Log.printLine(CloudSim.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId()
-						+ " in " + datacenterName);
+				Log.printLine(CloudSim.clock() + ": " + getName() + ": Trying to Create VM #" + vm.getId() + " in "
+						+ datacenterName);
 				sendNow(datacenterId, CloudSimTags.VM_CREATE_ACK, vm);
 				requestedVms++;
 			}
@@ -340,49 +333,6 @@ public class DatacenterBrokerMod extends SimEntity {
 
 		setVmsRequested(requestedVms);
 		setVmsAcks(0);
-	}
-	
-	private List<Vm> getSortedVms(List<Vm> vmList) {
-		List<Vm> sortList = new ArrayList<Vm>();
-		for(int i = 0; i < vmList.size(); i++) {
-		Vm smallestVm = vmList.get(i);
-			for(int j = 0; j < vmList.size(); j++) {
-					Vm tempI = vmList.get(i);
-					Vm tempJ = vmList.get(j);
-				if(tempI.getMips() > tempJ.getMips()) {
-					vmList.set(i, tempJ);
-					vmList.set(j, tempI);
-				}
-			}
-		}
-		int i = vmList.size();
-		while(i > 0) {
-			sortList.add(vmList.get(i - 1));
-			i--;
-		}
-		return sortList;
-	}
-	
-	private List<Cloudlet> getSortedCloudlets(List<Cloudlet> cltList){
-		List<Cloudlet> sortList = new ArrayList<Cloudlet>();
-		ArrayList<Cloudlet> tempList = new ArrayList<Cloudlet>();
-		
-		for(Cloudlet cloudlet : cltList) {
-			tempList.add(cloudlet);
-		}
-		int totalCloudlets = tempList.size();
-		
-		for(int i = 0; i<totalCloudlets; i++) {
-			Cloudlet smallestCloudlet = tempList.get(0);
-			for(Cloudlet checkCloudlet: tempList) {
-				if(smallestCloudlet.getCloudletLength() > checkCloudlet.getCloudletLength()) {
-					smallestCloudlet = checkCloudlet;
-				}
-			}
-			sortList.add(smallestCloudlet);
-			tempList.remove(smallestCloudlet);
-		}
-		return sortList;
 	}
 
 	/**
@@ -394,16 +344,16 @@ public class DatacenterBrokerMod extends SimEntity {
 	protected void submitCloudlets() {
 		int vmIndex = 0;
 
-		List<Vm> vmList = getSortedVms(getVmsCreatedList());
-		List<Cloudlet> cloudletsList = getSortedCloudlets(getCloudletList());
-	
-		CustomPair geneticPair = geneticAlgorithm(cloudletsList, vmList);
+		List<Vm> vmList = getVmsCreatedList();
+		List<Cloudlet> cloudletsList = getCloudletList();
+
+		CustomPair geneticPair = geneticAlgorithm(getCloudletList(), getVmsCreatedList());
 		cloudletsList = geneticPair.getFirst();
 		vmList = geneticPair.getSecond();
-	
+
 		for (Cloudlet cloudlet : cloudletsList) {
 			Vm vm;
-		// if user didn't bind this cloudlet and it has not been executed yet
+			// if user didn't bind this cloudlet and it has not been executed yet
 			if (cloudlet.getVmId() == -1) {
 				vm = vmList.get(vmIndex);
 			} else { // submit to the specific vm
@@ -415,8 +365,8 @@ public class DatacenterBrokerMod extends SimEntity {
 				}
 			}
 
-			Log.printLine(CloudSim.clock() + ": " + getName() + ": Sending cloudlet "
-					+ cloudlet.getCloudletId() + " to VM #" + vm.getId());
+			Log.printLine(CloudSim.clock() + ": " + getName() + ": Sending cloudlet " + cloudlet.getCloudletId()
+					+ " to VM #" + vm.getId());
 			cloudlet.setVmId(vm.getId());
 			sendNow(getVmsToDatacentersMap().get(vm.getId()), CloudSimTags.CLOUDLET_SUBMIT, cloudlet);
 			cloudletsSubmitted++;
@@ -424,7 +374,7 @@ public class DatacenterBrokerMod extends SimEntity {
 			getCloudletSubmittedList().add(cloudlet);
 		}
 
-	// remove submitted cloudlets from waiting list
+		// remove submitted cloudlets from waiting list
 		for (Cloudlet cloudlet : getCloudletSubmittedList()) {
 			getCloudletList().remove(cloudlet);
 		}
@@ -451,8 +401,7 @@ public class DatacenterBrokerMod extends SimEntity {
 			sortedList.set(idx, tmp2);
 		}
 
-				
-	// SORTING CLOUDLETS BY LENGTH
+		// SORTING CLOUDLETS BY LENGTH
 		ArrayList<Vm> sortedListVm = new ArrayList<Vm>();
 		ArrayList<Vm> toBeUsedVm = new ArrayList<Vm>();
 		ArrayList<Vm> leftOutVm = new ArrayList<Vm>();
@@ -460,7 +409,7 @@ public class DatacenterBrokerMod extends SimEntity {
 			sortedListVm.add(vm);
 		}
 		int numVms = sortedListVm.size();
-	
+
 		for (int i = 0; i < numVms; i++) {
 			Vm tmp = sortedListVm.get(i);
 			int idx = i;
@@ -479,86 +428,58 @@ public class DatacenterBrokerMod extends SimEntity {
 			sortedListVm.set(idx, tmp2);
 		}
 		
+		int aveCls = (sortedList.size() / sortedListVm.size());
+		int rem = sortedList.size() % sortedListVm.size();
+		int noVms = sortedListVm.size();
+		// Assign Cloudlets to VM
+		List<Gene2> genelist = new ArrayList<>();
+		int oldPosition = 0;
+		for(int i = 0; i < noVms; i++) {
+			Gene2 gene = new Gene2(sortedList.subList(oldPosition, (i + 1) * aveCls), sortedListVm.get(i));
+			oldPosition = (i + 1) * aveCls;
+			genelist.add(gene);
+			if(i == noVms - 1 && rem != 0) { // FIlling the remainder Cloudlets if any exist. 
+				List<Cloudlet> lastSetOfClts = genelist.get(genelist.size() - 1).getCloudletsFromGene();
+				List<Cloudlet> remCloudlets = sortedList.subList(oldPosition, sortedList.size() - 1);
+				for(Cloudlet cl: remCloudlets) {
+					lastSetOfClts.add(cl);
+				}
+				genelist.get(genelist.size() - 1).setCloudletsForGene(lastSetOfClts);
+			}
+		}
+		
+		Log.printLine("******************************************** " + genelist);
+
 		// BEGINNING OF CHROMOSOME ALGORITHM
-	
+
 		// INITIAL POPULATION AND FIRST-CHROMOSOME ARE CREATED.
 		// K IS USED TO GET THE THE POSITION OF VM TO CREATE A GENE
 		// I IS USED TO GET THE THE POSITION OF CLOUDLET TO CREATE A GENE
-		// THE THE GENE IS ADDED TO A LIST OF GENES TO CREATE A CHROMOSOME AND THE CHROMOSOME TO A INITIAL-LIST OF CHROMOSOMES
-	
+		// THE THE GENE IS ADDED TO A LIST OF GENES TO CREATE A CHROMOSOME AND THE
+		// CHROMOSOME TO A INITIAL-LIST OF CHROMOSOMES
+
 		ArrayList<Chromosomes> initialPopulation = new ArrayList<Chromosomes>();
-		for (int j = 0; j < numCloudlets; j++) {
+		for (int j = 0; j < numCloudlets * numVms; j++) {
 			ArrayList<Gene> firstChromosome = new ArrayList<Gene>();
-			
+
 			for (int i = 0; i < numCloudlets; i++) {
 				int k = (i + j) % numVms;
-				k = (k + numCloudlets) % numCloudlets;
+				// k = (k + numCloudlets) % numCloudlets;
 				Gene geneObj = new Gene(sortedList.get(i), sortedListVm.get(k));
 				firstChromosome.add(geneObj);
 			}
 			Chromosomes chromosome = new Chromosomes(firstChromosome);
 			initialPopulation.add(chromosome);
 		}
-	
-		List<String> chromesPopulation = new ArrayList<String>();
-		for(Chromosomes chromosome : initialPopulation) {
-			String chromes = "";
-			for(Gene gene : chromosome.getGeneList()) {
-				int txt = 0;
-				txt = (int) (gene.getCloudletFromGene().getCloudletLength() / gene.getVmFromGene().getMips());
-				chromes += "[" + "Task " + gene.getCloudletFromGene().getCloudletId() + ".  Vm " + gene.getVmFromGene().getId() + "]";
-			}
-			chromesPopulation.add(chromes);
-			//Log.printLine("Chromes " + chromes);
-		}
-		
-		int populationSize = initialPopulation.size();
-		Random random = new Random();
-		List<Chromosomes> mutchromosomePopulation = new ArrayList<Chromosomes>();
-		for (int itr = 0; itr < populationSize; itr++) {
-			int index1, index2;
-			index1 = random.nextInt(populationSize) % populationSize;
-			index2 = random.nextInt(populationSize) % populationSize;
-			ArrayList<Gene> l1 = new ArrayList<Gene>();
-			l1 = initialPopulation.get(index1).getGeneList();
-			Chromosomes chromosome1 = new Chromosomes(l1);
-			ArrayList<Gene> l2 = new ArrayList<Gene>();
-			l2 = initialPopulation.get(index2).getGeneList();
-			Chromosomes chromosome2 = new Chromosomes(l2);
-			double rangeMin = 0.0f;
-			double rangeMax = 1.0f;
-			Random r = new Random();
-			double crossProb = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
-			if (crossProb < 0.5) {
-				int i, j;
-				i = random.nextInt(numCloudlets) % numCloudlets;
-				j = random.nextInt(numCloudlets) % numCloudlets;
-				Vm vm1 = l1.get(i).getVmFromGene();
-				Vm vm2 = l2.get(j).getVmFromGene();
-				chromosome1.updateGene(i, vm2);
-				chromosome2.updateGene(j, vm1);
-				initialPopulation.set(index1, chromosome1);
-				initialPopulation.set(index2, chromosome2);
-			}
-			
-			 double mutProb = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
-			 if(mutProb < 0.5) {
-				 int i; 
-				 i = random.nextInt(populationSize) % populationSize;
-				 ArrayList<Gene> l = new ArrayList<Gene>();
-			 	l = initialPopulation.get(i).getGeneList();
-			 	Chromosomes mutchromosome = new	Chromosomes(l); 
-			 	int j;
-			 	j = random.nextInt(numCloudlets) % numCloudlets; 
-			 	Vm vm1 = sortedListVm.get(0); 
-			 	mutchromosome.updateGene(j, vm1);
-			 	mutchromosomePopulation.add(mutchromosome);
-			 }
-			 
-		}
+
+		initialPopulation = evaluation(cloudletList, sortedListVm, initialPopulation);
+
+		// FITNESS
 		int fittestIndex = 0;
 		double time = 1000000;
-		
+		List<Integer> fitnessList = new ArrayList<Integer>();
+		int populationSize = initialPopulation.size();
+
 		for (int i = 0; i < populationSize; i++) {
 			ArrayList<Gene> geneList = new ArrayList<Gene>();
 			geneList = initialPopulation.get(i).getGeneList();
@@ -569,33 +490,192 @@ public class DatacenterBrokerMod extends SimEntity {
 				Vm v = gene.getVmFromGene();
 				double temp = c.getCloudletLength() / v.getMips();
 				sum += temp;
-				//Log.printLine("MUTOCHROME temp ************************* " + sum);
 			}
 			if (sum < time) {
 				time = sum;
 				fittestIndex = i;
-				Log.printLine("MUTOCHROME POPULATION ************** " + time + " *********** " + fittestIndex);
+				fitnessList.add(fittestIndex);
 			}
 		}
-		
+
 		ArrayList<Gene> result = new ArrayList<Gene>();
 		result = initialPopulation.get(fittestIndex).getGeneList();
-		
+
 		List<Cloudlet> finalcloudletList = new ArrayList<Cloudlet>();
 		List<Vm> finalvmlist = new ArrayList<Vm>();
-		
+
 		for (int i = 0; i < result.size(); i++) {
 			finalcloudletList.add(result.get(i).getCloudletFromGene());
 			finalvmlist.add(result.get(i).getVmFromGene());
 		}
-		for (int i = 0; i < result.size(); i++) {
-			Log.printLine(result.get(i).getCloudletFromGene().getCloudletId() + " *************** " + result.get(i).getVmFromGene().getId());
-		}
-		
 		CustomPair pairOfResources = new CustomPair(finalcloudletList, finalvmlist);
 		return pairOfResources;
 	}
-	
+
+	static ArrayList<Chromosomes> evaluation(List<Cloudlet> cloudletList, ArrayList<Vm> vmList,
+			List<Chromosomes> initialPopulation) {
+		Double fitestValue = 0.0;
+		double time = 1000000;
+		int iteration = 0;
+		Boolean foundFittest = false;
+		int numCloudlets = cloudletList.size();
+		Double previousfitestValue = Double.MIN_VALUE;
+		int populationSize = initialPopulation.size();
+		List<Double> fitnessList = new ArrayList<Double>();
+
+		while (iteration < 100) {
+			// FITNESS
+			double sum = 0;
+			for (int i = 0; i < populationSize; i++) {
+				ArrayList<Gene> geneList = new ArrayList<Gene>();
+				geneList = initialPopulation.get(i).getGeneList();
+				for (int j = 0; j < numCloudlets; j++) {
+					Gene gene = geneList.get(j);
+					Cloudlet c = gene.getCloudletFromGene();
+					Vm v = gene.getVmFromGene();
+					double temp = c.getCloudletLength() / v.getMips();
+					sum += temp;
+				}
+				if (sum < time) {
+					time = sum;
+				}
+			}
+			fitestValue = sum;
+			fitnessList.add(fitestValue);
+			if (fitestValue < previousfitestValue) {
+				previousfitestValue = fitestValue;
+				foundFittest = true;
+			}
+			/*
+			 * if (foundFittest && iteration > 20 ) { return (ArrayList<Chromosomes>)
+			 * initialPopulation; }
+			 */
+			previousfitestValue = fitestValue;
+
+			// CROSS-OVER
+			Random random = new Random();
+			for (int itr = 0; itr < populationSize; itr++) {
+				int index1, index2;
+				index1 = random.nextInt(populationSize) % populationSize;
+				index2 = random.nextInt(populationSize) % populationSize;
+				ArrayList<Gene> l1 = new ArrayList<Gene>();
+				l1 = initialPopulation.get(index1).getGeneList();
+				Chromosomes chromosome1 = new Chromosomes(l1);
+				ArrayList<Gene> l2 = new ArrayList<Gene>();
+				l2 = initialPopulation.get(index2).getGeneList();
+				Chromosomes chromosome2 = new Chromosomes(l2);
+				double rangeMin = 0.0f;
+				double rangeMax = 1.0f;
+				Random r = new Random();
+				double crossProb = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
+				if (crossProb < 0.5) {
+					int i, j;
+					i = random.nextInt(numCloudlets) % numCloudlets;
+					j = random.nextInt(numCloudlets) % numCloudlets;
+					Vm vm1 = l1.get(i).getVmFromGene();
+					Vm vm2 = l2.get(j).getVmFromGene();
+					chromosome1.updateGene(i, vm2);
+					chromosome2.updateGene(j, vm1);
+					initialPopulation.set(index1, chromosome1);
+					initialPopulation.set(index2, chromosome2);
+				}
+			}
+
+			// MUTATION
+			Random r = new Random();
+			double rangeMin = 0.0f;
+			double rangeMax = 1.0f;
+			double mutProb = rangeMin + (rangeMax - rangeMin) * r.nextDouble();
+			if (mutProb < 0.5) {
+				int i;
+				i = random.nextInt(populationSize) % populationSize;
+				ArrayList<Gene> l = new ArrayList<Gene>();
+				l = initialPopulation.get(i).getGeneList();
+				Chromosomes mutchromosome = new Chromosomes(l);
+				int j;
+				j = random.nextInt(numCloudlets) % numCloudlets;
+				Vm vm1 = vmList.get(0);
+				mutchromosome.updateGene(j, vm1);
+				initialPopulation.set(i, mutchromosome);
+			}
+
+			iteration++;
+		}
+		return (ArrayList<Chromosomes>) initialPopulation;
+	}
+
+	static void promise(List<Chromosomes> initialPopulation) {
+		int populationSize = initialPopulation.size();
+		int fittestIndex = 0;
+		List<Integer> fitnessList = new ArrayList<Integer>();
+		int secondFitestIndex = 0;
+		if (fitnessList.size() > 1) {
+			secondFitestIndex = fitnessList.get(fitnessList.size() - 1);
+		} else {
+			secondFitestIndex = Integer.MIN_VALUE;
+		}
+
+		if (secondFitestIndex != Integer.MIN_VALUE) { // MUTATION
+			Boolean foundFittest = false;
+			while (foundFittest == false) {
+				Random r = new Random();
+				initialPopulation.get(fittestIndex).getGeneList();
+			}
+		}
+	}
+
+	static List<CustomDoublePair> listOfVmAndFitness(ArrayList<Gene> geneList) {
+		List<CustomDoublePair> list = new ArrayList<CustomDoublePair>(); // STORES THE GENE VM ID AND ITS SUM OF FITNESS
+		for (int i = 0; i < geneList.size(); i++) {
+			CustomDoublePair pair = new CustomDoublePair(0, 0.0);
+			Double fitness = 0.0;
+			for (int j = 0; j < geneList.size(); j++) {
+				if (geneList.get(i).getVmFromGene().getId() == geneList.get(j).getVmFromGene().getId()) {
+					fitness += geneList.get(j).getCloudletFromGene().getCloudletLength()
+							/ geneList.get(j).getVmFromGene().getMips();
+				}
+			}
+			pair.setFirst(geneList.get(i).getVmFromGene().getId());
+			pair.setSecond(fitness);
+			list.add(pair);
+		}
+		return list;
+	}
+
+	static CustomDoublePair min(ArrayList<Gene> list) {
+		Integer minIdx = 0;
+		Double minValue = 0.0;
+		Double minimumReg = 10000000.0;
+		for (int i = 0; i < list.size(); i++) {
+			Double txt = 0.0;
+			Gene gene = list.get(i);
+			txt = (gene.getCloudletFromGene().getCloudletLength() / gene.getVmFromGene().getMips());
+			minValue = txt;
+			if (minValue < minimumReg) {
+				minimumReg = minValue;
+				minIdx = i;
+			}
+		}
+		return new CustomDoublePair(minIdx, minimumReg);
+	}
+
+	static CustomDoublePair max(ArrayList<Gene> list) {
+		Integer maxIdx = 0;
+		Double maxValue = 0.0;
+		Double maxReg = 0.0;
+		for (int i = 0; i < list.size(); i++) {
+			Double txt = 0.0;
+			Gene gene = list.get(i);
+			txt = (gene.getCloudletFromGene().getCloudletLength() / gene.getVmFromGene().getMips());
+			maxValue = txt;
+			if (maxValue > maxReg) {
+				maxReg = maxValue;
+				maxIdx = i;
+			}
+		}
+		return new CustomDoublePair(maxIdx, maxReg);
+	}
+
 	/**
 	 * Destroy the virtual machines running in datacenters.
 	 * 
@@ -623,6 +703,7 @@ public class DatacenterBrokerMod extends SimEntity {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see cloudsim.core.SimEntity#shutdownEntity()
 	 */
 	@Override
@@ -632,6 +713,7 @@ public class DatacenterBrokerMod extends SimEntity {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see cloudsim.core.SimEntity#startEntity()
 	 */
 	@Override
@@ -654,7 +736,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Sets the vm list.
 	 * 
-	 * @param <T> the generic type
+	 * @param <T>    the generic type
 	 * @param vmList the new vm list
 	 */
 	protected <T extends Vm> void setVmList(List<T> vmList) {
@@ -675,7 +757,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Sets the cloudlet list.
 	 * 
-	 * @param <T> the generic type
+	 * @param <T>          the generic type
 	 * @param cloudletList the new cloudlet list
 	 */
 	protected <T extends Cloudlet> void setCloudletList(List<T> cloudletList) {
@@ -696,7 +778,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Sets the cloudlet submitted list.
 	 * 
-	 * @param <T> the generic type
+	 * @param <T>                   the generic type
 	 * @param cloudletSubmittedList the new cloudlet submitted list
 	 */
 	protected <T extends Cloudlet> void setCloudletSubmittedList(List<T> cloudletSubmittedList) {
@@ -717,7 +799,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Sets the cloudlet received list.
 	 * 
-	 * @param <T> the generic type
+	 * @param <T>                  the generic type
 	 * @param cloudletReceivedList the new cloudlet received list
 	 */
 	protected <T extends Cloudlet> void setCloudletReceivedList(List<T> cloudletReceivedList) {
@@ -738,7 +820,7 @@ public class DatacenterBrokerMod extends SimEntity {
 	/**
 	 * Sets the vm list.
 	 * 
-	 * @param <T> the generic type
+	 * @param <T>            the generic type
 	 * @param vmsCreatedList the vms created list
 	 */
 	protected <T extends Vm> void setVmsCreatedList(List<T> vmsCreatedList) {
@@ -880,4 +962,3 @@ public class DatacenterBrokerMod extends SimEntity {
 	}
 
 }
-

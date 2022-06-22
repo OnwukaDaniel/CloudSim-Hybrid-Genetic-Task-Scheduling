@@ -15,6 +15,7 @@ import java.io.FileNotFoundException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -44,7 +45,7 @@ import org.cloudbus.cloudsim.provisioners.RamProvisionerSimple;
  * An example showing how to create
  * scalable simulations.
  */
-public class CloudSimExample6 {
+public class HGA {
 
 	/** The cloudlet list. */
 	private static List<Cloudlet> cloudletList;
@@ -131,6 +132,14 @@ public class CloudSimExample6 {
 	/**
 	 * Creates main() to run this example
 	 */
+	
+	/**
+	 * 
+	 *  HGA Written by Onwuka Daniel
+	 *  https://github.com/OnwukaDaniel
+	 *  
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		Log.printLine("Starting CloudSimExample6...");
 
@@ -152,15 +161,123 @@ public class CloudSimExample6 {
 			Datacenter datacenter1 = createDatacenter("Datacenter_1");
 
 			//Third step: Create Broker
-			DatacenterBrokerResearchChange broker = createBroker();
+			DBGA broker = createBroker();
 			int brokerId = broker.getId();
 
 			//Fourth step: Create VMs and Cloudlets and send them to broker
 			vmlist = createVM(brokerId, 30); // creating 20 vms
-			cloudletList = createCloudlet(brokerId, 330); // creating 40 cloudlets
+			cloudletList = createCloudlet(brokerId, 300); // creating 40 cloudlets
 
+			int aveCls = (cloudletList.size() / vmlist.size());
+			int rem = cloudletList.size() % vmlist.size();
+			int noVms = vmlist.size();
+			// Assign Cloudlets to VM
+			List<List<List<Gene2>>> population = new ArrayList<>();
+			List<Integer> fittnessList = new ArrayList<>();
+			
+			for(int x = 0; x < 100; x++) {
+				List<List<Gene2>> chromosome = new ArrayList<>();
+				for(int j = 0; j < 20; j++) {
+					Collections.shuffle(vmlist);
+					Collections.shuffle(cloudletList);
+					int oldPosition = 0;
+					List<Gene2> genelist = new ArrayList<>();
+					for(int i = 0; i < noVms; i++) {
+						if(i == noVms - 1 && rem != 0) { // FIlling the remainder Cloudlets if any exist.
+							Gene2 geneLast = new Gene2(cloudletList.subList(oldPosition, cloudletList.size()), vmlist.get(i));
+							genelist.add(geneLast);
+							break;
+						}
+						List<Cloudlet> clts = cloudletList.subList(oldPosition, (i + 1) * aveCls);
+						Gene2 gene = new Gene2(clts, vmlist.get(i));
+						oldPosition = (i + 1) * aveCls;
+						if(i < noVms) {
+							genelist.add(gene);
+						}
+					}
+					chromosome.add(genelist);
+				}
+				population.add(chromosome);
+			}
+			
+			
+			Boolean converged = false;
+			List<Integer> convValues = new ArrayList<>();
+			convValues.add(average(fitnessPopulation(population)));
+			List<List<List<Gene2>>> best = population;
+			
+			while(converged == false) {
+				List<List<List<Gene2>>> srt = sortPopulation(population);
+				List<List<List<Gene2>>> newGeneration = new ArrayList<>();
+				
+				// ELITISM: 10% of the best
+				newGeneration = srt.subList(0, (10 * srt.size()/100));
+				List<List<List<Gene2>>> parent1 = new ArrayList<>();
+				List<List<List<Gene2>>> parent2 = new ArrayList<>();
+				//CROSS_OVER or MUTATION
+				parent1.addAll(srt.subList(0, srt.size()));
+				parent2.addAll(srt.subList(0, srt.size()));
+				List<List<List<Gene2>>> p = mate(parent1, parent2, cloudletList, vmlist);
+				newGeneration.addAll(p);
+				population = newGeneration;
+				int avg = average(fitnessPopulation(population));
+				if(avg < Collections.min(convValues)) {
+					best = newGeneration;
+				}
+				Collections.sort(convValues);
+				if(convValues.size() > 500 || avg < Collections.min(convValues )) {
+					converged = true;
+				}
+				if(convValues.size() > 500) {
+					converged = true;
+				}
+				convValues.add(avg);
+			}
+			List<List<Gene2>> bestChromosome = pickBestChromosome(best);
+
+			List<List<Gene2>> bestGeneList = population.get(0); // INITIALISED
+			converged = false;
+			while(converged == false) {
+				List<List<Gene2>> srt = sortChromosome(bestChromosome);
+				List<List<Gene2>> newGeneration = new ArrayList<>();
+				
+				// ELITISM: 10% of the best
+				newGeneration = srt.subList(0, (10 * srt.size()/100));
+				List<List<Gene2>> parent1 = new ArrayList<>();
+				List<List<Gene2>> parent2 = new ArrayList<>();
+				//CROSS_OVER or MUTATION
+				parent1.addAll(srt.subList(0, srt.size()));
+				parent2.addAll(srt.subList(0, srt.size()));
+				List<List<Gene2>> p = mateChromosomes(parent1, parent2, cloudletList, vmlist);
+				newGeneration.addAll(p);
+				int avg = fitnessChromosome(newGeneration);
+				if(avg < Collections.min(convValues)) {
+					bestGeneList = newGeneration;
+				}
+				Collections.sort(convValues);
+				if(convValues.size() > 500 || avg < Collections.min(convValues )) {
+					converged = true;
+				}
+				if(convValues.size() > 500) {
+					converged = true;
+				}
+				convValues.add(avg);
+			}
+
+			List<Gene2> bestGeneListList = pickBestGenelist(bestGeneList);
+			List<Cloudlet> clts = new ArrayList<>();
+			for(Gene2 gene: bestGeneListList) {
+				for(int i = 0; i < gene.getCloudletsFromGene().size(); i++) {
+					Log.printLine("getCloudletsFromGene ************************" + i);
+					Cloudlet clt = gene.getCloudletsFromGene().get(i);
+					clts.add(clt);
+					clt.setUserId(brokerId);
+					clt.setVmId(gene.getVmFromGene().getId());
+					//broker.bindCloudletToVm(clt.getCloudletId(), gene.getVmFromGene().getId());
+				}
+			}
+			broker.submitCloudletList(clts);
 			broker.submitVmList(vmlist);
-			broker.submitCloudletList(cloudletList);
 
 			// Fifth stecp: Starts the simulation
 			CloudSim.startSimulation();
@@ -181,6 +298,144 @@ public class CloudSimExample6 {
 		}
 	}
 
+	static Integer average(List<Integer> input) {
+		int sum = 0;
+		for(int num: input) { sum += num;}
+		return sum / input.size();
+	}
+
+	static List<List<List<Gene2>>> sortPopulation(List<List<List<Gene2>>> population){
+		List<List<Gene2>> temp= new ArrayList<>();
+		for(int i = 0; i< population.size(); i++)
+		{
+		    for(int j = 0; j< population.size()-1; j++)
+		    {
+		        if(fitnessChromosome(population.get(j+1)) < fitnessChromosome(population.get(j)))
+		        {
+		            temp = population.get(j+1);
+		            population.set(j+1, population.get(j));
+		            population.set(j, temp);
+		        }
+		    }
+		}
+		return population;
+	}
+
+	static List<List<Gene2>> sortChromosome(List<List<Gene2>> chromosome){
+		List<Gene2> temp= new ArrayList<>();
+		for(int i = 0; i< chromosome.size(); i++)
+		{
+		    for(int j = 0; j< chromosome.size()-1; j++)
+		    {
+		        if(fitnessChromosome2(chromosome.get(j+1)) < fitnessChromosome2(chromosome.get(j)))
+		        {
+		            temp = chromosome.get(j+1);
+		            chromosome.set(j+1, chromosome.get(j));
+		            chromosome.set(j, temp);
+		        }
+		    }
+		}
+		return chromosome;
+	}
+	
+	static List<List<Gene2>> pickBestChromosome(List<List<List<Gene2>>> population){
+		List<List<Gene2>> best= new ArrayList<>();
+		int bestValue = Integer.MAX_VALUE;
+		for(int i = 0; i< population.size(); i++)
+		{
+			int fitValue = fitnessChromosome(population.get(i));
+			//Log.printLine("fitValue ****************************************" + fitValue);
+		    if(fitValue < bestValue)
+		    {
+		        best = population.get(i);
+		        bestValue = fitnessChromosome(population.get(i));
+		    }
+		}
+		return best;
+	}
+	
+	static List<Gene2> pickBestGenelist(List<List<Gene2>> chromosome){
+		List<Gene2> best= new ArrayList<>();
+		int bestValue = Integer.MAX_VALUE;
+		for(int i = 0; i< chromosome.size(); i++)
+		{
+			int fitValue = fitnessChromosome2(chromosome.get(i));
+		    if(fitValue < bestValue)
+		    {
+		        best = chromosome.get(i);
+		        bestValue = fitnessChromosome2(chromosome.get(i));
+		    }
+		}
+		return best;
+	}
+
+	static List<List<List<Gene2>>> mate(List<List<List<Gene2>>> parent1, List<List<List<Gene2>>> parent2, List<Cloudlet> sortedList, List<Vm> sortedListVm){
+		List<List<List<Gene2>>> children = new ArrayList<>();
+		for(int x = 0; x < (90 * parent1.size()/100); x++) {
+			Random rand = new Random();
+			Double randNum = rand.nextDouble(1);
+			if(randNum < 0.45) {
+				children.add(parent1.get(x));
+			} else if(randNum <= 1.0) {
+				children.add(parent2.get(x));
+			}
+		}
+		return children;
+	}
+
+	static List<List<Gene2>> mateChromosomes(List<List<Gene2>> parent1, List<List<Gene2>> parent2, List<Cloudlet> sortedList, List<Vm> sortedListVm){
+		List<List<Gene2>> children = new ArrayList<>();
+		for(int x = 0; x < (90 * parent1.size()/100); x++) {
+			Random rand = new Random();
+			Double randNum = rand.nextDouble(1);
+			if(randNum < 0.45) {
+				children.add(parent1.get(x));
+			} else if(randNum <= 1.0) {
+				children.add(parent2.get(x));
+			}
+		}
+		return children;
+	}
+	
+	static List<Integer> fitnessPopulation(List<List<List<Gene2>>> population) {
+		int fitness = 0;
+		List<Integer> fitnessList = new ArrayList<>(); 
+		for(List<List<Gene2>> chromo : population) {
+			fitness = fitnessChromosome(chromo);
+			fitnessList.add(fitness);
+		}
+		 return fitnessList;
+	}
+	
+	static int fitnessChromosome(List<List<Gene2>> chromo) {
+		int fitness = 0; 
+		for (List<Gene2> cr1: chromo) {
+			for (Gene2 gene: cr1) { 
+				fitness +=  fitnessGene(gene);
+			}
+		}
+		return fitness;
+	}
+	
+	static int fitnessChromosome2(List<Gene2> chromo) {
+		int fitness = 0; 
+		for (Gene2 geneList: chromo) {
+			fitness +=  fitnessGene(geneList);
+		}
+		return fitness;
+	}
+
+
+	static int fitnessGene(Gene2 gene) {
+		int fitness = 0;
+		Vm vm = gene.getVmFromGene();
+		List<Cloudlet> clt = gene.getCloudletsFromGene();
+		for (Cloudlet ct: clt) {
+			fitness += ct.getCloudletLength() / vm.getMips();
+		}
+		return fitness;
+	}
+	
 	private static Datacenter createDatacenter(String name){
 
 		// Here are the steps needed to create a PowerDatacenter:
@@ -295,11 +550,11 @@ public class CloudSimExample6 {
 
 	//We strongly encourage users to develop their own broker policies, to submit vms and cloudlets according
 	//to the specific rules of the simulated scenario
-	private static DatacenterBrokerResearchChange createBroker(){
+	private static DBGA createBroker(){
 
-		DatacenterBrokerResearchChange broker = null;
+		DBGA broker = null;
 		try {
-			broker = new DatacenterBrokerResearchChange("Broker");
+			broker = new DBGA("Broker");
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;

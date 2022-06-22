@@ -496,7 +496,7 @@ public class DatacenterBrokerResearch extends SimEntity {
 		// FITNESS
 		int fittestIndex = 0;
 		double time = 1000000;
-		//List<Double> valList = new ArrayList<Double>();
+		List<Integer> fitnessList = new ArrayList<Integer>();
 		
 		for (int i = 0; i < populationSize; i++) {
 			ArrayList<Gene> geneList = new ArrayList<Gene>();
@@ -506,16 +506,15 @@ public class DatacenterBrokerResearch extends SimEntity {
 				Gene gene = geneList.get(j);
 				Cloudlet c = gene.getCloudletFromGene();
 				Vm v = gene.getVmFromGene();
-				double temp = c.getCloudletLength() / v.getMips() + c.getCloudletLength();
+				double temp = (Double) Math.log10((int) c.getCloudletLength()) /v.getMips() ;
 				sum += temp;
 			}
 			if (sum < time) {
 				time = sum;
 				fittestIndex = i;
+				fitnessList.add(fittestIndex);
 			}
 		}
-		
-
 		
 		chromesPopulation = new ArrayList<String>();
 		String chromes = "";
@@ -579,11 +578,11 @@ public class DatacenterBrokerResearch extends SimEntity {
 		}
 
 		// Find CloudLet with minimum length.
-		Long minCV = Long.MIN_VALUE;
+		Long minCV = Long.MAX_VALUE;
 		Cloudlet mminC = listGeneMin.get(0).getSecond().getCloudletFromGene();
 		for(int i = 0; i < listGeneMin.size(); i++) {
 			Cloudlet clMM = listGeneMin.get(i).getSecond().getCloudletFromGene();
-			if(clMM.getCloudletLength() > minCV) {
+			if(clMM.getCloudletLength() < minCV) {
 				minCV = clMM.getCloudletLength();
 				mminC = clMM;
 			}
@@ -604,12 +603,17 @@ public class DatacenterBrokerResearch extends SimEntity {
 		
 		// Find cloudLet and replace with min
 		// Find cloudLet and replace with max
+		Log.printLine("MIN VM ID ***************************** " + mminC.getCloudletLength());
+		Log.printLine("MAX VM ID ***************************** " + mmaxC.getCloudletLength());
 		if(mminC.getCloudletLength() < mmaxC.getCloudletLength()) {
 			for(int i = 0; i < geneList.size(); i++) {
+				Log.printLine("1 ***************************** " + geneList.get(i).getCloudletFromGene().getCloudletLength());
+				Log.printLine("2 ***************************** " + geneList.get(i).getVmFromGene().getMips());
 				if (mminC.getCloudletId() == geneList.get(i).getCloudletFromGene().getCloudletId()) {
 					initialPopulation.get(fittestIndex).updateGene(i, mmaxC);
 				}
 				if (mmaxC.getCloudletId() == geneList.get(i).getCloudletFromGene().getCloudletId()) {
+					//Log.printLine("2 ***************************** " + mmaxC.getCloudletLength());
 					initialPopulation.get(fittestIndex).updateGene(i, mminC);
 				}
 			}
@@ -627,7 +631,6 @@ public class DatacenterBrokerResearch extends SimEntity {
 		//initialPopulation.get(fittestIndex).updateGene(min.first, geneMax.getVmFromGene());
 		//initialPopulation.get(fittestIndex).updateGene(max.first, gene.getVmFromGene());
 		
-
 		//Log.printLine("MIN VM ID ***************************** " + gene.getVmFromGene().getId());
 		//Log.printLine("MIN VM MIPS ***************************** " + gene.getVmFromGene().getMips());
 
